@@ -153,10 +153,57 @@ str(clean_data)
 ### Part 4: Find the population density
 
 population density = total population/ land area
+```{r}
+
+#| label: population-density
+
+# Convert variables to numeric and calculate density
+clean_data <- clean_data |>
+  dplyr::mutate(
+    total_pop = as.numeric(total_pop),
+    land_area = as.numeric(land_area),
+    water_area = as.numeric(water_area),
+    population_density = total_pop / land_area
+  )
+
+# Check the results
+clean_data |>
+  dplyr::select(
+    state_name,
+    total_pop,
+    land_area,
+    population_density
+  ) |>
+  head()
+
+```
+
 
 ### Part 5: Find Water Share
 
 water share = water area /(land area + water area)
+```{r}
+
+#| label: water-share
+
+# Calculate the proportion of water area
+clean_data <- clean_data |>
+  dplyr::mutate(
+    water_share = water_area / (land_area + water_area)
+  )
+
+# Check the results
+clean_data |>
+  dplyr::select(
+    state_name,
+    land_area,
+    water_area,
+    water_share
+  ) |>
+  head()
+
+```
+
 
 #### Tips for Students
 
