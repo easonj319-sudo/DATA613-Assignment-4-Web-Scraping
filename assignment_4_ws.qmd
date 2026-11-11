@@ -250,3 +250,46 @@ That said, you can make it slightly more precise and a bit more “data‑scienc
     - Check for duplicated rows.
 
     - Verify that the number of rows matches the number of U.S. states + territories.
+    
+```{r}
+
+#| label: wikipedia-tables
+
+library(rvest)
+library(tidyverse)
+
+# Read the Wikipedia page
+url <- "https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population"
+
+webpage <- read_html(url)
+
+# Find all tables
+tables <- webpage |>
+  html_elements("table")
+
+# Check table captions
+table_info <- tibble(
+  table_number = seq_along(tables),
+  caption = purrr::map_chr(tables, function(x) {
+    caption <- x |> html_element("caption") |> html_text2()
+    if (length(caption) == 0) NA_character_ else caption
+  })
+)
+
+print(table_info, n = Inf)
+
+```
+```{r}
+#| label: extract-wikipedia-table
+
+# Extract the population ranking table
+wiki_population <- tables[[1]] |>
+  html_table(fill = TRUE)
+
+# Check the table structure
+dim(wiki_population)
+names(wiki_population)
+head(wiki_population)
+```
+
+    
