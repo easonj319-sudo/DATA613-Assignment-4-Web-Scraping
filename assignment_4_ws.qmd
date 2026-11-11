@@ -291,5 +291,96 @@ dim(wiki_population)
 names(wiki_population)
 head(wiki_population)
 ```
+```{r}
+
+#| label: clean-wikipedia-data
+
+# 1. Remove the repeated header row
+# Fix missing and duplicate column names
+wiki_clean <- wiki_population
+
+names(wiki_clean) <- paste0(
+  "col_", seq_len(ncol(wiki_clean))
+)
+
+# Remove repeated header row
+wiki_clean <- wiki_clean |>
+  dplyr::slice(-1)
+
+# 2. Assign clear and descriptive column names
+names(wiki_clean) <- c(
+  "rank",
+  "state_or_territory",
+  "population_2025",
+  "population_2020",
+  "house_seats",
+  "house_seat_percent",
+  "population_per_electoral_vote",
+  "population_per_house_seat",
+  "us_population_percent",
+  "electoral_college_percent"
+)
+
+# 3. Clean text and missing value placeholders
+wiki_clean <- wiki_clean |>
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::everything(),
+      ~ dplyr::na_if(
+        trimws(as.character(.x)), ""
+      )
+    ),
+    dplyr::across(
+      dplyr::everything(),
+      ~ dplyr::if_else(
+        .x %in% c("—", "–", "-", "__", "N/A"),
+        NA_character_,
+        .x
+      )
+    )
+  )
+
+# 4. Convert numeric columns and rank
+wiki_clean <- wiki_clean |>
+  dplyr::mutate(
+    rank = as.integer(readr::parse_number(rank)),
+    dplyr::across(
+      -c(rank, state_or_territory),
+      ~ readr::parse_number(.x)
+    ),
+    state_or_territory = as.character(state_or_territory)
+  )
+
+# 5. Remove summary rows, keeping states and territories
+wiki_clean <- wiki_clean |>
+  dplyr::filter(
+    !state_or_territory %in% c(
+      "Contiguous United States",
+      "The 50 states",
+      "The 50 states and D.C.",
+      "Total US and territories"
+    )
+  )
+# Remove Wikipedia citation numbers from state names
+wiki_clean <- wiki_clean |>
+  dplyr::mutate(
+    state_or_territory = stringr::str_remove_all(
+      state_or_territory,
+      "\\[[0-9]+\\]"
+    )
+  )
+# 6. Check the cleaned data
+dim(wiki_clean)
+head(wiki_clean)
+str(wiki_clean)
+
+# Check missing values
+colSums(is.na(wiki_clean))
+
+# Check duplicate state or territory names
+sum(duplicated(wiki_clean$state_or_territory))
+
+```
+
 
     
